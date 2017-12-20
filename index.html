@@ -151,6 +151,107 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-render-light-tp-brdf" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/lynxhunch.github.io/2017/12/17/render-light-tp-brdf/">BRDF光照原理以及各项异性效果</a>
+    </h1>
+  
+
+        
+        <a href="/lynxhunch.github.io/2017/12/17/render-light-tp-brdf/" class="archive-article-date">
+  	<time datetime="2017-12-17T11:02:38.428Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-12-17</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><br><br><br></p>
+<h2 id="BRDF的解释"><a href="#BRDF的解释" class="headerlink" title="BRDF的解释"></a>BRDF的解释</h2><ul>
+<li>BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：</li>
+</ul>
+<div align="center"><br>    <img src="/lynxhunch.github.io/img/cc25239f2cbd0188e36ccb68b40e9bf1_b.jpg" alt="Reflect Model"><br></div>
+
+<p>其中 <strong>l</strong>是光线的入射向量，<strong>n</strong>为表面法向量， <strong>r</strong> 为反射向量，<strong>t</strong>为折射向量。 这是以前初中物理学过的光照模型。</p>
+<p>了解了这个光照模型，问题来了：<br><strong>Q1</strong>: 折射与反射的强度显然由物体表面材质决定，那么材质究竟是如何影响反射、折射强度的？</p>
+<p><strong>A1</strong>：物体与光的交互可以这样粗暴的分类和定义：<br><strong>光与物质的交互</strong>： 光的穿透率，决定物质的透明情况</p>
+<p>光是是一种横向传播的电磁波，电磁波的波长范围非常广，但只有390~760nm之间的一段波谱是人眼可见到的，也就是在图形学里对渲染着色起作用的部分。另外因为光有波粒二象性的缘故，有时候我们在图形学里也会把光做为光子（photon）来处理。<br>    <img src="/lynxhunch.github.io/img/2235455dpp8pnhq54tiapt.png" alt="Spectrum"></p>
+<p>当光投射到传感器（眼睛，照相机等）上时，颜色和亮度就会被吸收并感知，而光与物质交互后被感知的，就是物体的颜色。</p>
+<p>我们观察白开水时，会发现白开水本身没有颜色。这是因为无论是对于光的颜色，还是光的强度，都没有被吸收，完完全全透了过去。而比如一些果汁，就呈现出不同的颜色，这是因为光在果汁内部被吸收了，导致光强发生了变化。被吸收的光转化为物体内部的热能。<br>    <img src="/lynxhunch.github.io/img/223512f32uylyfeau0jyi4.jpg" alt="A1"><br>    <img src="/lynxhunch.github.io/img/223907zr4z238634bvrlsn.jpg" alt="A2"><br>甚至，在某些浑浊液体中，会发生散射的现象。这些发生散射现象的物质，叫做非均匀物质，而溶液，普通玻璃，则为均匀物质。</p>
+<p><strong>光与平面的交互</strong>： 光的反射，漫反射，决定物质的表面颜色</p>
+<p>自然界中大多数物体的表面是不均匀的，例如下面这个物体：<br><img src="/lynxhunch.github.io/img/001808qhnrd4ecfxcivuxj.jpg" alt="A1"></p>
+<p>宏观看起来已经是比较光滑的物体了，单在更微观的情况下观察的话，就会发现实际上还是有很多微小的坑洼（微平面microfacet）。这也导致了反射出来的虚像有一些模糊。而对比图中，如果表面更粗糙，则模糊程度会加剧。</p>
+<p>那么如果表面都很光滑的情况下，物体材质是否会影响反射效果？比如一块理想下非常光滑的砖面和一块非常光滑的金属，反射率是否一样？</p>
+<p>答案是否定的。<br>因为不同物质对于光的吸收程度不同。金属无带隙，电子处于<strong>费米面</strong>，为自由电子，所以不存在电子跃迁吸收光这个说法。金属对于光的吸收来自于自由电子振动发热。物质对于光的反射和折射是与其电导率相关的，具体表现为复数的介电常数，所以除非是完全绝缘体，否则必然会出现复介电常数，具体可参考电动力学麦克斯韦方程组。金属无带隙，电导率大，最终导致界面反射大，界面透过小，参考光学。另一方面，频率越低，反射率越大。所以金属大多呈白色，最不济也是黄色。有些如紫铜等，那些是因为杂质和其中的金属氧化物造成的。透过金属表面的光，却因为电子的自由振荡全部转化为热，其穿透深度一般小于100纳米，所以整体透过率为零，金属完全不透光。<br>而非金属（包括半导体），因为其带隙大，电导率小，无自由电子，所以其表面反射率小，表面透过率大。半导体对于光的吸收来自于电子跃迁，高频光能量大，更有利于电子跃迁，低频光无法激发电子跃迁，基本透过。所以透过其表面的光，高频的在内部被吸收，低频的透过。<br><img src="/lynxhunch.github.io/img/223832mlizxa665006ys05.jpg" alt="Metal&amp;Non-Metal"></p>
+<p><strong>Q2</strong>：在Q1明了的情况下，这个强度究竟如何影响我们看到的这个物体的样貌？即物体如何着色（Sahding）？</p>
+<p><strong>A2</strong>：对于光作用于一个物体上的光的反射状态，对于BRDF（PBR里又是另一套概念）来说主要对应：Diffue（漫反射），SSS（次表面反射），Specular（高光）。SSS且不论，Diffuse和Specular相对比较好理解，如下图：<br><img src="/lynxhunch.github.io/img/2239152cew7eolglecoo5e.png" alt="Specular&amp;Diffuse"></p>
+<p>Specular就是直接反射的光线，一般方向比较统一，强度贴近光源，即为高光颜色；<br>Diffuse是物体内部结构导致的反射出来的光，这些光已经经过了吸收，所以呈现出来物体属性和光结合赋予的颜色；</p>
+<p>讲到这里，又要引入一个概念：菲涅尔反射（Fresnel）。拿水面来说，在视线与物体平面夹角小时，呈现出更高的反射岸上景物；而反之则能看到水底物体。如果你看向一个圆球，那圆球中心的反射较弱，靠近边缘较强，这就是“菲涅尔效应”。不同材质的菲涅尔效应强弱不同，导体(如金属)的菲涅尔反射效应很弱，就拿铝来说，其反射率在所有角度下几乎都保持在86%以上，随角度变化很小，而绝缘体材质的菲涅尔效应就很明显，比如折射率为1.5的玻璃，在表面法向量方向的反射率仅为4%，但当视线与表面法向量夹角很大的时候，反射率可以接近100%，这一现象也使得金属与非金属看起来不同。</p>
+<p><img src="/lynxhunch.github.io/img/223459nfd0sbsbnsswlipf.jpg" alt="Fresnel"></p>
+<p>仔细看球的边缘，是否更加亮？这是反射率更高的原因，这也使得渲染更接近真实。</p>
+<p><strong>最后回到BRDF的定义</strong>：<br>对于一个方向的入射光，表面会将光反射到表面上半球的各个方向，不同方向反射的比例是不同的，我们用BRDF来表示指定方向的反射光和入射光的比例关系，BRDF定义为：</p>
+<p><img src="/lynxhunch.github.io/img/equation.svg" alt="BRDF"></p>
+<blockquote>
+<p>其中f就是BRDF，l是入射光方向，v是观察方向，也就是我们关心的反射光方向。<br>d L_o(v)是表面反射到v方向的反射光的微分辐射率。表面反射到v方向的反射光的辐射率为L_o(v)<br>，来自于表面上半球所有方向的入射光线的贡献，而微分辐射率d L_o(v)特指来自方向l的入射光贡献的反射辐射率。<br>dE(l)是表面上来自入射光方向l的微分辐照度。表面接收到的辐照度为E，来自上半球所有方向的入射光线的贡献，而微分辐照度dE(l)<br>特指来自于方向l的入射光。</p>
+</blockquote>
+<ul>
+<li>BRDF的性质<ul>
+<li>Helmholtz互异性（Helmholtz Reciprocity）:入射角和出射角互换，函数值保持不变。</li>
+<li>能量守恒:出射能量不可能大于入射能量，所以BRDF必须进行归一化处理。<br>能量守恒可以用一张很形象的图来表示：<br><img src="/lynxhunch.github.io/img/223559lttykv5ndomtcyoz.jpg" alt="Energy Conservation "><br>同一光照下，反射率越高的物体越暗。</li>
+</ul>
+</li>
+</ul>
+<p>这个公式是由光学中的辐照率和辐出度推导而来，这里不展开。重点是，这个公式配合微表面分布和能量守恒，就能整出下面要说的公式。</p>
+<h2 id="Cook-Torrance公式"><a href="#Cook-Torrance公式" class="headerlink" title="Cook-Torrance公式"></a>Cook-Torrance公式</h2><p><img src="/lynxhunch.github.io/img/002wvREMgy6Rz4pmxGx71&amp;690.png" alt="CT公式"></p>
+<p>下面将逐个解释每一个参数式的含义。</p>
+<h3 id="D-微表面分布函数"><a href="#D-微表面分布函数" class="headerlink" title="D: 微表面分布函数"></a>D: 微表面分布函数</h3><p>上一节已经说过，即使看起来非常光滑的物体表面，也会存在很多肉眼不可见的坑坑洼洼。对于这些微平面，我们只能用不同的粗糙度（gloss）的分布函数去逼近他，就如同Cook-Torrance论文中提到的图:<br><img src="/lynxhunch.github.io/img/20171220142828.png" alt="D分布公式"></p>
+<h2 id="Unity-Shader实验"><a href="#Unity-Shader实验" class="headerlink" title="Unity Shader实验"></a>Unity Shader实验</h2><h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2>
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/lynxhunch.github.io/2017/12/17/render-light-tp-brdf/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-render-light-list" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -186,29 +287,6 @@
     <div class="article-info article-info-index">
       
       
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">lighting,</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">lightmap,</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">PBR,</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">RayCasting</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
       
 	<div class="article-category tagcloud">
 		<i class="icon-book icon"></i>
@@ -289,17 +367,6 @@
     <div class="article-info article-info-index">
       
       
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">-显卡</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
       
 
       
@@ -425,26 +492,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
             <input type="checkbox" q-on="click:toggleTag(e)" q-attr="checked:showTags">
           </label>
           <ul class="article-tag-list" q-show="showTags">
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">lighting,</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">lightmap,</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">PBR,</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">RayCasting</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">-显卡</a>
-              </li>
             
             <div class="clearfix"></div>
           </ul>
