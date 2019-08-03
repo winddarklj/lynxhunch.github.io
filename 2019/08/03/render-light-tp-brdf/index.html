@@ -6,14 +6,40 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="https://winddarklj.github.io">
-  <title>Tag: lighting | Hexo</title>
+  <title>BRDF光照原理以及各项异性效果 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
-<meta property="og:url" content="https://winddarklj.github.io/tags/lighting/index.html">
+  <meta name="description" content="BRDF的解释 BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：        其中 l是光线的入射向量，n为表面法向量， r 为反射向量，t为折射向量">
+<meta name="keywords" content="lighting">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BRDF光照原理以及各项异性效果">
+<meta property="og:url" content="https://winddarklj.github.io/2019/08/03/render-light-tp-brdf/index.html">
 <meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="BRDF的解释 BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：        其中 l是光线的入射向量，n为表面法向量， r 为反射向量，t为折射向量。 这是以前初中物理学过的光照模型。">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/cc25239f2cbd0188e36ccb68b40e9bf1_b.jpg">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/2235455dpp8pnhq54tiapt.png">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/223512f32uylyfeau0jyi4.jpg">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/223907zr4z238634bvrlsn.jpg">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/001808qhnrd4ecfxcivuxj.jpg">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/223832mlizxa665006ys05.jpg">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/2239152cew7eolglecoo5e.png">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/223459nfd0sbsbnsswlipf.jpg">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/equation.svg">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/223559lttykv5ndomtcyoz.jpg">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/002wvREMgy6Rz4pmxGx71&690.png">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/20171220142828.png">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/24404380aa0494eb462b18a20a9bc9da_hd.jpg">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/mathtex.gif">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/20171220145714.png">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/20171220150051.png">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/20171220150229.png">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/600px-Shadowing_masking_term.jpg">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/20171220153706.png">
+<meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/20171220221426.png">
+<meta property="og:updated_time" content="2019-08-03T07:33:05.797Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hexo">
+<meta name="twitter:title" content="BRDF光照原理以及各项异性效果">
+<meta name="twitter:description" content="BRDF的解释 BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：        其中 l是光线的入射向量，n为表面法向量， r 为反射向量，t为折射向量。 这是以前初中物理学过的光照模型。">
+<meta name="twitter:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/cc25239f2cbd0188e36ccb68b40e9bf1_b.jpg">
   
     <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -155,36 +181,132 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
-  
-  
+            <article id="post-render-light-tp-brdf" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
     
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/lynxhunch.github.io/archives/2019" class="archive-year">2019</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/lynxhunch.github.io/2019/08/03/render-light-tp-brdf/" class="archive-article-date">
-  	<time datetime="2019-08-03T08:16:10.401Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-08-03</time>
-</a>
-        </div>
-    	 
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/lynxhunch.github.io/2019/08/03/render-light-tp-brdf/">BRDF光照原理以及各项异性效果</a>
+    <h1 class="article-title" itemprop="name">
+      BRDF光照原理以及各项异性效果
     </h1>
   
 
-        <div class="article-info info-on-right">
-          
+        
+        <a href="/lynxhunch.github.io/2019/08/03/render-light-tp-brdf/" class="archive-article-date">
+  	<time datetime="2019-08-03T08:16:10.401Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-08-03</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><br><br><br></p>
+<h2 id="BRDF的解释"><a href="#BRDF的解释" class="headerlink" title="BRDF的解释"></a>BRDF的解释</h2><ul>
+<li>BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：</li>
+</ul>
+<div align="center"><br>    <img src="/lynxhunch.github.io/img/cc25239f2cbd0188e36ccb68b40e9bf1_b.jpg" alt="Reflect Model"><br></div>
+
+<p>其中 <strong>l</strong>是光线的入射向量，<strong>n</strong>为表面法向量， <strong>r</strong> 为反射向量，<strong>t</strong>为折射向量。 这是以前初中物理学过的光照模型。<br><a id="more"></a><br>了解了这个光照模型，问题来了：<br><strong>Q1</strong>: 折射与反射的强度显然由物体表面材质决定，那么材质究竟是如何影响反射、折射强度的？</p>
+<p><strong>A1</strong>：物体与光的交互可以这样粗暴的分类和定义：<br><strong>光与物质的交互</strong>： 光的穿透率，决定物质的透明情况</p>
+<p>光是是一种横向传播的电磁波，电磁波的波长范围非常广，但只有390~760nm之间的一段波谱是人眼可见到的，也就是在图形学里对渲染着色起作用的部分。另外因为光有波粒二象性的缘故，有时候我们在图形学里也会把光做为光子（photon）来处理。<br>    <img src="/lynxhunch.github.io/img/2235455dpp8pnhq54tiapt.png" alt="Spectrum"></p>
+<p>当光投射到传感器（眼睛，照相机等）上时，颜色和亮度就会被吸收并感知，而光与物质交互后被感知的，就是物体的颜色。</p>
+<p>我们观察白开水时，会发现白开水本身没有颜色。这是因为无论是对于光的颜色，还是光的强度，都没有被吸收，完完全全透了过去。而比如一些果汁，就呈现出不同的颜色，这是因为光在果汁内部被吸收了，导致光强发生了变化。被吸收的光转化为物体内部的热能。<br>    <img src="/lynxhunch.github.io/img/223512f32uylyfeau0jyi4.jpg" alt="A1"><br>    <img src="/lynxhunch.github.io/img/223907zr4z238634bvrlsn.jpg" alt="A2"><br>甚至，在某些浑浊液体中，会发生散射的现象。这些发生散射现象的物质，叫做非均匀物质，而溶液，普通玻璃，则为均匀物质。</p>
+<p><strong>光与平面的交互</strong>： 光的反射，漫反射，决定物质的表面颜色</p>
+<p>自然界中大多数物体的表面是不均匀的，例如下面这个物体：<br><img src="/lynxhunch.github.io/img/001808qhnrd4ecfxcivuxj.jpg" alt="A1"></p>
+<p>宏观看起来已经是比较光滑的物体了，单在更微观的情况下观察的话，就会发现实际上还是有很多微小的坑洼（微平面microfacet）。这也导致了反射出来的虚像有一些模糊。而对比图中，如果表面更粗糙，则模糊程度会加剧。</p>
+<p>那么如果表面都很光滑的情况下，物体材质是否会影响反射效果？比如一块理想下非常光滑的砖面和一块非常光滑的金属，反射率是否一样？</p>
+<p>答案是否定的。<br>因为不同物质对于光的吸收程度不同。金属无带隙，电子处于<strong>费米面</strong>，为自由电子，所以不存在电子跃迁吸收光这个说法。金属对于光的吸收来自于自由电子振动发热。物质对于光的反射和折射是与其电导率相关的，具体表现为复数的介电常数，所以除非是完全绝缘体，否则必然会出现复介电常数，具体可参考电动力学麦克斯韦方程组。金属无带隙，电导率大，最终导致界面反射大，界面透过小，参考光学。另一方面，频率越低，反射率越大。所以金属大多呈白色，最不济也是黄色。有些如紫铜等，那些是因为杂质和其中的金属氧化物造成的。透过金属表面的光，却因为电子的自由振荡全部转化为热，其穿透深度一般小于100纳米，所以整体透过率为零，金属完全不透光。<br>而非金属（包括半导体），因为其带隙大，电导率小，无自由电子，所以其表面反射率小，表面透过率大。半导体对于光的吸收来自于电子跃迁，高频光能量大，更有利于电子跃迁，低频光无法激发电子跃迁，基本透过。所以透过其表面的光，高频的在内部被吸收，低频的透过。<br><img src="/lynxhunch.github.io/img/223832mlizxa665006ys05.jpg" alt="Metal&amp;Non-Metal"></p>
+<p><strong>Q2</strong>：在Q1明了的情况下，这个强度究竟如何影响我们看到的这个物体的样貌？即物体如何着色（Sahding）？</p>
+<p><strong>A2</strong>：对于光作用于一个物体上的光的反射状态，对于BRDF（PBR里又是另一套概念）来说主要对应：Diffue（漫反射），SSS（次表面反射），Specular（高光），Ambient（环境光）。SSS且不论，Ambient在图形学中经常使用一个常数（因为次级反射是非常复杂的），Diffuse和Specular相对比较好理解，如下图：<br><img src="/lynxhunch.github.io/img/2239152cew7eolglecoo5e.png" alt="Specular&amp;Diffuse"></p>
+<p>Specular就是直接反射的光线，一般方向比较统一，强度贴近光源，即为高光颜色；<br>Diffuse是物体内部结构导致的反射出来的光，这些光已经经过了吸收，所以呈现出来物体属性和光结合赋予的颜色；</p>
+<p>讲到这里，又要引入一个概念：菲涅尔反射（Fresnel）。拿水面来说，在视线与物体平面夹角小时，呈现出更高的反射岸上景物；而反之则能看到水底物体。如果你看向一个圆球，那圆球中心的反射较弱，靠近边缘较强，这就是“菲涅尔效应”。不同材质的菲涅尔效应强弱不同，导体(如金属)的菲涅尔反射效应很弱，就拿铝来说，其反射率在所有角度下几乎都保持在86%以上，随角度变化很小，而绝缘体材质的菲涅尔效应就很明显，比如折射率为1.5的玻璃，在表面法向量方向的反射率仅为4%，但当视线与表面法向量夹角很大的时候，反射率可以接近100%，这一现象也使得金属与非金属看起来不同。</p>
+<p><img src="/lynxhunch.github.io/img/223459nfd0sbsbnsswlipf.jpg" alt="Fresnel"></p>
+<p>仔细看球的边缘，是否更加亮？这是反射率更高的原因，这也使得渲染更接近真实。</p>
+<p><strong>最后回到BRDF的定义</strong>：<br>对于一个方向的入射光，表面会将光反射到表面上半球的各个方向，不同方向反射的比例是不同的，我们用BRDF来表示指定方向的反射光和入射光的比例关系，BRDF定义为：</p>
+<p><img src="/lynxhunch.github.io/img/equation.svg" alt="BRDF"></p>
+<blockquote>
+<p>其中f就是BRDF，l是入射光方向，v是观察方向，也就是我们关心的反射光方向。<br>d L_o(v)是表面反射到v方向的反射光的微分辐射率。表面反射到v方向的反射光的辐射率为L_o(v)<br>，来自于表面上半球所有方向的入射光线的贡献，而微分辐射率d L_o(v)特指来自方向l的入射光贡献的反射辐射率。<br>dE(l)是表面上来自入射光方向l的微分辐照度。表面接收到的辐照度为E，来自上半球所有方向的入射光线的贡献，而微分辐照度dE(l)<br>特指来自于方向l的入射光。</p>
+</blockquote>
+<ul>
+<li>BRDF的性质<ul>
+<li>Helmholtz互异性（Helmholtz Reciprocity）:入射角和出射角互换，函数值保持不变。</li>
+<li>能量守恒:出射能量不可能大于入射能量，所以BRDF必须进行归一化处理。<br>能量守恒可以用一张很形象的图来表示：<br><img src="/lynxhunch.github.io/img/223559lttykv5ndomtcyoz.jpg" alt="Energy Conservation "><br>同一光照下，反射率越高的物体越暗。</li>
+</ul>
+</li>
+</ul>
+<p>这个公式是由光学中的辐照率和辐出度推导而来，这里不展开。重点是，这个公式配合微表面分布和能量守恒，就能整出下面要说的公式。</p>
+<h2 id="Cook-Torrance公式"><a href="#Cook-Torrance公式" class="headerlink" title="Cook-Torrance公式"></a>Cook-Torrance公式</h2><p><img src="/lynxhunch.github.io/img/002wvREMgy6Rz4pmxGx71&amp;690.png" alt="CT公式"></p>
+<p>下面将逐个解释每一个参数式的含义。</p>
+<h3 id="D-微表面分布函数"><a href="#D-微表面分布函数" class="headerlink" title="D: 微表面分布函数"></a>D: 微表面分布函数</h3><p>上一节已经说过，即使看起来非常光滑的物体表面，也会存在很多肉眼不可见的坑坑洼洼。对于这些微平面，我们只能用不同的粗糙度（gloss）的分布函数去逼近他，就如同Cook-Torrance论文中提到的图:<br><img src="/lynxhunch.github.io/img/20171220142828.png" alt="D分布公式"><br>其中m = gloss^2；这是各相同性的情况，各项异性有两个参数。<br>函数<strong>D()</strong>决定了specular高光的大小、亮度和形状。比如下图，可以增加一些感性认识：<br><img src="/lynxhunch.github.io/img/24404380aa0494eb462b18a20a9bc9da_hd.jpg" alt="D分布形状"></p>
+<h3 id="F-菲涅尔方程"><a href="#F-菲涅尔方程" class="headerlink" title="F: 菲涅尔方程"></a>F: 菲涅尔方程</h3><p>上一节提到过的菲涅尔方程，在这里也出现了。原始的菲涅尔公式，对于计算和性能不够友好，一般采用Schlick近似：</p>
+<p><img src="/lynxhunch.github.io/img/mathtex.gif" alt="F Equation"></p>
+<p>其实Cspec指的是高光颜色，其实又是表示反射光强。</p>
+<p>对于菲涅尔方程，我有1点要说明一下：</p>
+<p>其实菲尼尔也是有通道的。非金属通常没有，而金属是有的，比如：</p>
+<p><img src="/lynxhunch.github.io/img/20171220145714.png" alt="F Equation Channel"></p>
+<p>可以看出金属的RGB三色的反射率变化是不同的。在有些shader中，会只有一个标量值来表示F，其实未必够。</p>
+<p><img src="/lynxhunch.github.io/img/20171220150051.png" alt="F Equation Copper"></p>
+<p>比如这张铜，其反射部分会偏红。有些甲虫的几丁质外壳更不用说了，反射出各色颜色。<br><img src="/lynxhunch.github.io/img/20171220150229.png" alt="BUG"></p>
+<h3 id="G-V-几何项、遮挡项（shadowing-masking-term）"><a href="#G-V-几何项、遮挡项（shadowing-masking-term）" class="headerlink" title="G/V: 几何项、遮挡项（shadowing-masking term）"></a>G/V: 几何项、遮挡项（shadowing-masking term）</h3><p>遮挡项G(l, v, h)也经常称为几何项。有时候会把分母合并进来，称为V项。 在很多情况下，遮挡项在某种程度上抵消了microfacet方程中的(n·l)(n·v)分母，替换成类似于max(n·l, n·v)这样的形式。遮挡项对BRDF保能量是很重要的——没有这个项的话，BRDF反射出的能量可能比接收到的更多。 Microfacet BRDF中很重要的一个事情是把能量从l反射到v的microfacet面积之和（有效面积）和宏表面总面积之间的比例。如果不考虑遮挡，那么有效面积可能会超过总面积，这回造成BRDF不保能量，甚至可能会很明显，如下图所示：</p>
+<p><img src="/lynxhunch.github.io/img/600px-Shadowing_masking_term.jpg" alt="Shadow-Masking"></p>
+<p>在上半部分，平的宏表面为绿色，粗糙的微观表面为蓝色。m = h的microfacet标记为红色。宏表面投到视线方向就是左上角的绿线。同时，投出来的单个红色的microfacet显示成独立的红线。左下图表示在没有遮挡项的情况下，红色的microfacet加起来的面积，结果就是有效面积大于总面积，所以BRDF的反射能量错误地大于了接收能量。右下图里红色区域考虑了遮挡，重叠的区域不再计算多次，所以有效面积小于总面积。</p>
+<h2 id="Unity-Shader实验"><a href="#Unity-Shader实验" class="headerlink" title="Unity Shader实验"></a>Unity Shader实验</h2><p>我们拿Unity雕塑模型来做做实验。首先写一个shader，F采用Schlick, D采用GGX, G采用以下公式：</p>
+<p><img src="/lynxhunch.github.io/img/20171220153706.png" alt="Shadow-Masking"><br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line">Shader <span class="string">"Custom/GGX"</span></span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">       _DiffuseColor(<span class="string">"DiffuseColor"</span>, Color) = (<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>)</span><br><span class="line">       _RoughNess(<span class="string">"RoughNess"</span>, Range(<span class="number">0</span>, <span class="number">1</span>)) = <span class="number">0.5</span>  <span class="comment">//BeckMan的RoughNess，没有上限</span></span><br><span class="line">       _Fresnel(<span class="string">"Fresnel"</span>, Color) = (<span class="number">0.15</span>, <span class="number">0.15</span>, <span class="number">0.15</span>, <span class="number">1</span>)</span><br><span class="line">       _K(<span class="string">"K"</span>,Range(<span class="number">0</span>,<span class="number">1</span>)) = <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">        	Tags&#123;<span class="string">"LightMode"</span> = <span class="string">"ForwardBase"</span>&#125;</span><br><span class="line">        	LOD <span class="number">300</span></span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line">            fixed4 _DiffuseColor;</span><br><span class="line">            <span class="keyword">float</span> _RoughNess;</span><br><span class="line">            float3 _Fresnel;</span><br><span class="line">            uniform float4 _LightColor0;</span><br><span class="line">            <span class="keyword">float</span> _K;</span><br><span class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">a2v</span></span></span><br><span class="line"><span class="class">            &#123;</span></span><br><span class="line">            	fixed3 vertex: POSITION;</span><br><span class="line">            	fixed3 normal: NORMAL;</span><br><span class="line">            &#125;;</span><br><span class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">v2f</span></span></span><br><span class="line"><span class="class">            &#123;</span></span><br><span class="line">            	float4 pos: SV_POSITION;</span><br><span class="line">            	float4 posWorld : TEXCOORD1;</span><br><span class="line">            	fixed3 normal: NORMAL;</span><br><span class="line">            &#125;;</span><br><span class="line">           	<span class="function">v2f <span class="title">vert</span><span class="params">(a2v a)</span></span></span><br><span class="line"><span class="function">           	</span>&#123;</span><br><span class="line">           		v2f f;</span><br><span class="line">           		f.pos = UnityObjectToClipPos(a.vertex);</span><br><span class="line">           		f.posWorld = mul(unity_ObjectToWorld, a.vertex);</span><br><span class="line">           		f.normal = a.normal;</span><br><span class="line">           		<span class="keyword">return</span> f;</span><br><span class="line">           	&#125;</span><br><span class="line"></span><br><span class="line">           	fixed4 frag(v2f i) : COLOR</span><br><span class="line">           	&#123;</span><br><span class="line">           		<span class="comment">//观察者</span></span><br><span class="line">                float3 v = normalize(_WorldSpaceCameraPos -i.posWorld).xyz;</span><br><span class="line">                <span class="comment">//光源</span></span><br><span class="line">                float3 l = normalize(_WorldSpaceLightPos0).xyz;</span><br><span class="line"></span><br><span class="line">                fixed3 n = mul(i.normal, (float3x3)unity_WorldToObject);</span><br><span class="line">           		<span class="comment">//公式:</span></span><br><span class="line">           		<span class="comment">//D(h) * G(h,v,l) * F(l,h)</span></span><br><span class="line">           		<span class="comment">//-------------------------</span></span><br><span class="line">           		<span class="comment">//    4 * (n * l) ( n * v)</span></span><br><span class="line"></span><br><span class="line">           		fixed3 h = normalize(l + v);</span><br><span class="line"></span><br><span class="line">           		<span class="keyword">float</span> l_h = saturate(dot(l, h));</span><br><span class="line">           		<span class="keyword">float</span> n_h = saturate(dot(n, h));</span><br><span class="line">           		<span class="keyword">float</span> n_v = saturate(dot(n, v));</span><br><span class="line">           		<span class="keyword">float</span> h_v = saturate(dot(h, v));</span><br><span class="line">           		<span class="keyword">float</span> l_n = saturate(dot(l, n));</span><br><span class="line"></span><br><span class="line">           		<span class="comment">//首先计算F</span></span><br><span class="line">           		<span class="comment">//F(l,h) = RF + (1 - RF)(1 - l * h)^5</span></span><br><span class="line">           		fixed3 F = _Fresnel + (<span class="number">1</span> - _Fresnel) * <span class="built_in">pow</span>((<span class="number">1</span> - h_v), <span class="number">5</span>);</span><br><span class="line"></span><br><span class="line">           		<span class="comment">//然后： D(h)</span></span><br><span class="line">           		<span class="keyword">float</span> alpha = _RoughNess * _RoughNess;</span><br><span class="line">           		<span class="comment">//float r = (n_h * n_h - 1) / (m2 * n_h * n_h);</span></span><br><span class="line">           		<span class="comment">//float D = 1.0 / ( 4.0 * m2 * pow(n_h, 4)) * exp(r);</span></span><br><span class="line"></span><br><span class="line">           		<span class="keyword">float</span> D = alpha * alpha / (<span class="number">3.1415</span> * <span class="built_in">pow</span> (( n_h * n_h * ( alpha * alpha - <span class="number">1</span>) + <span class="number">1</span>), <span class="number">2</span>));</span><br><span class="line"></span><br><span class="line">           		<span class="keyword">float</span> Gb = <span class="number">2</span> * n_h * n_v / h_v;</span><br><span class="line">           		<span class="keyword">float</span> Gc = <span class="number">2</span> * n_h * l_n / l_h;</span><br><span class="line"></span><br><span class="line">           		<span class="keyword">float</span> G = min(<span class="number">1</span>, min(Gb, Gc));</span><br><span class="line"></span><br><span class="line">           		fixed3 CT =  saturate(F * D * G / (<span class="number">4</span> * l_n * n_v));</span><br><span class="line"></span><br><span class="line">           		float3 diff = _DiffuseColor * l_n;</span><br><span class="line">           		float3 spec = diff * CT;</span><br><span class="line">           		float3 final =  _K * (diff  * UNITY_LIGHTMODEL_AMBIENT.xyz) + (<span class="number">1</span> - _K) * spec * _LightColor0.xyz;</span><br><span class="line">                <span class="keyword">return</span> float4(final,<span class="number">1</span>);</span><br><span class="line">           	&#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>各向异性代码：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br></pre></td><td class="code"><pre><span class="line">Shader <span class="string">"Custom/GGX-Ani"</span></span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">       _DiffuseColor(<span class="string">"DiffuseColor"</span>, Color) = (<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>)</span><br><span class="line">       _RoughNess(<span class="string">"RoughNess"</span>, Range(<span class="number">0</span>, <span class="number">1</span>)) = <span class="number">0.5</span>  <span class="comment">//BeckMan的RoughNess，没有上限</span></span><br><span class="line">       _Fresnel(<span class="string">"Fresnel"</span>, Color) = (<span class="number">0.15</span>, <span class="number">0.15</span>, <span class="number">0.15</span>, <span class="number">1</span>)</span><br><span class="line">       _K(<span class="string">"K"</span>,Range(<span class="number">0</span>,<span class="number">1</span>)) = <span class="number">1</span></span><br><span class="line">       _Anisotropic(<span class="string">"_Anisotropic"</span>, Range(<span class="number">0</span>,<span class="number">1</span>)) = <span class="number">0.5</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">        	Tags&#123;<span class="string">"LightMode"</span> = <span class="string">"ForwardBase"</span>&#125;</span><br><span class="line">        	LOD <span class="number">300</span></span><br><span class="line">            CGPROGRAM</span><br><span class="line">            #pragma vertex vert</span><br><span class="line">            #pragma fragment frag</span><br><span class="line"></span><br><span class="line">            fixed4 _DiffuseColor;</span><br><span class="line">            <span class="keyword">float</span> _RoughNess;</span><br><span class="line">            float3 _Fresnel;</span><br><span class="line">            uniform float4 _LightColor0;</span><br><span class="line">            <span class="keyword">float</span> _K;</span><br><span class="line">            <span class="keyword">float</span> _Anisotropic;</span><br><span class="line"></span><br><span class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">a2v</span></span></span><br><span class="line"><span class="class">            &#123;</span></span><br><span class="line">            	fixed3 vertex: POSITION;</span><br><span class="line">            	fixed3 normal: NORMAL;</span><br><span class="line">            	fixed3 tangent: TANGENT;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">v2f</span></span></span><br><span class="line"><span class="class">            &#123;</span></span><br><span class="line">            	float4 pos: SV_POSITION;</span><br><span class="line">            	float4 posWorld : TEXCOORD1;</span><br><span class="line">            	fixed3 normal: NORMAL;</span><br><span class="line">            	float3 normalDir : TEXCOORD4;</span><br><span class="line">            	float3 tangentDir : TEXCOORD2;</span><br><span class="line">            	float3 biTangentDir : TEXCOORD3;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">           	<span class="function">v2f <span class="title">vert</span><span class="params">(a2v a)</span></span></span><br><span class="line"><span class="function">           	</span>&#123;</span><br><span class="line">           		v2f f;</span><br><span class="line">           		f.pos = UnityObjectToClipPos(a.vertex);</span><br><span class="line">           		f.posWorld = mul(unity_ObjectToWorld, a.vertex);</span><br><span class="line">           		f.normal = a.normal;</span><br><span class="line">           		f.normalDir = normalize(mul(a.normal, (float3x3)unity_WorldToObject));</span><br><span class="line">           		f.tangentDir = normalize(mul(a.tangent, (float3x3)unity_WorldToObject));	</span><br><span class="line">           		f.biTangentDir = cross(f.normalDir, f.tangentDir);</span><br><span class="line">           		<span class="keyword">return</span> f;</span><br><span class="line">           	&#125;</span><br><span class="line"></span><br><span class="line">           	fixed4 frag(v2f i) : COLOR</span><br><span class="line">           	&#123;</span><br><span class="line">           		<span class="comment">//观察者</span></span><br><span class="line">                float3 v = normalize(_WorldSpaceCameraPos -i.posWorld).xyz;</span><br><span class="line">                <span class="comment">//光源</span></span><br><span class="line">                float3 l = normalize(_WorldSpaceLightPos0).xyz;</span><br><span class="line"></span><br><span class="line">                fixed3 n = mul(i.normal, (float3x3)unity_WorldToObject);</span><br><span class="line">           		<span class="comment">//公式:</span></span><br><span class="line"></span><br><span class="line">           		fixed3 h = normalize(l + v);</span><br><span class="line"></span><br><span class="line">           		<span class="keyword">float</span> l_h = saturate(dot(l, h));</span><br><span class="line">           		<span class="keyword">float</span> n_h = saturate(dot(n, h));</span><br><span class="line">           		<span class="keyword">float</span> n_v = saturate(dot(n, v));</span><br><span class="line">           		<span class="keyword">float</span> h_v = saturate(dot(h, v));</span><br><span class="line">           		<span class="keyword">float</span> l_n = saturate(dot(l, n));</span><br><span class="line"></span><br><span class="line">           		<span class="comment">//首先计算F</span></span><br><span class="line">           		<span class="comment">//F(l,h) = RF + (1 - RF)(1 - l * h)^5</span></span><br><span class="line">           		fixed3 F = _Fresnel + (<span class="number">1</span> - _Fresnel) * <span class="built_in">pow</span>((<span class="number">1</span> - h_v), <span class="number">5</span>);</span><br><span class="line"></span><br><span class="line">           		<span class="comment">//然后： D(h)</span></span><br><span class="line">           		<span class="keyword">float</span> alpha = _RoughNess * _RoughNess;</span><br><span class="line">           		<span class="keyword">float</span> aspect = <span class="built_in">sqrt</span>(<span class="number">1</span> - <span class="number">0.9</span> * _Anisotropic);</span><br><span class="line">           		<span class="keyword">float</span> ax = max(alpha / aspect,  <span class="number">0.000001</span>);</span><br><span class="line">           		<span class="keyword">float</span> ay = max(alpha * aspect, <span class="number">0.000001</span>);</span><br><span class="line"></span><br><span class="line">           		<span class="keyword">float</span> <span class="keyword">h_t</span> = dot(h, i.tangentDir);</span><br><span class="line">           		<span class="keyword">float</span> h_b = dot(h, i.biTangentDir);</span><br><span class="line">           		<span class="keyword">float</span> dominator = <span class="built_in">pow</span>(<span class="keyword">h_t</span>  / ax, <span class="number">2</span>) + <span class="built_in">pow</span>(h_b / ay, <span class="number">2</span>) + n_h * n_h;</span><br><span class="line"></span><br><span class="line">           		<span class="keyword">float</span> D = <span class="number">1</span> / ( <span class="number">3.1415926</span> * ax * ay *dominator * dominator);</span><br><span class="line"></span><br><span class="line">           		<span class="keyword">float</span> Gb = <span class="number">2</span> * n_h * n_v / h_v;</span><br><span class="line">           		<span class="keyword">float</span> Gc = <span class="number">2</span> * n_h * l_n / l_h;</span><br><span class="line"></span><br><span class="line">           		<span class="keyword">float</span> G = min(<span class="number">1</span>, min(Gb, Gc));</span><br><span class="line"></span><br><span class="line">           		fixed3 CT =  saturate(F * D * G / (<span class="number">4</span> * l_n * n_v));</span><br><span class="line"></span><br><span class="line">           		float3 diff = _DiffuseColor * l_n;</span><br><span class="line">           		float3 spec = float3( CT.x * diff.x,  CT.y * diff.y ,  CT.z * diff.z);</span><br><span class="line">           		float3 final =  (<span class="number">1</span> - _K) * diff + _K * spec * _LightColor0.xyz ;</span><br><span class="line"></span><br><span class="line">           		<span class="keyword">return</span> float4(final,<span class="number">1</span>);</span><br><span class="line">           	&#125;</span><br><span class="line">            ENDCG</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>最终效果如图依次是：各向异性、各项同性金属、各项同性非金属效果</p>
+<p><img src="/lynxhunch.github.io/img/20171220221426.png" alt="Example"></p>
+<h3 id="FURTHER"><a href="#FURTHER" class="headerlink" title="FURTHER"></a>FURTHER</h3><ol>
+<li>上面两个shader，似乎最后的颜色渲染混合有些问题，应该可以不用到K来调节就能达到能量守恒；</li>
+<li>没有对模型做AO；</li>
+</ol>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p>其实还有很多内容可以探索挖掘：</p>
+<ol>
+<li>【《Real-Time Rendering 3rd》 提炼总结】(六) 第七章 · 高级着色：BRDF及相关技术 <a href="https://zhuanlan.zhihu.com/p/28059221" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/28059221</a></li>
+<li>光照相关的许多公式，其中m = roughness ^ roughness： <a href="https://zhuanlan.zhihu.com/p/26249528" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/26249528</a></li>
+<li>对比了各种D分布效果的区别，有部分实现代码：<a href="http://blog.csdn.net/wolf96/article/details/44172243" target="_blank" rel="noopener">http://blog.csdn.net/wolf96/article/details/44172243</a></li>
+<li>一个实现了的Shader，但是质感比较偏塑料:  <a href="http://blog.sina.com.cn/s/blog_89d90b7c0102vox7.html" target="_blank" rel="noopener">http://blog.sina.com.cn/s/blog_89d90b7c0102vox7.html</a></li>
+<li>这个质感比较不错，但参数感觉问题比较多，写了反射效果，但实际没有反射：<a href="https://www.cnblogs.com/jqm304775992/p/5202973.html" target="_blank" rel="noopener">https://www.cnblogs.com/jqm304775992/p/5202973.html</a></li>
+<li>主要是叛逆者讲到了一个spherical gaussian，是schilick的Fresnel的进一步近似。</li>
+<li>以及GGX的实现效果，有一圈光晕，看起来很真实（在图表效果上，尾巴更长）： <a href="https://www.zhihu.com/question/48050245?sort=created" target="_blank" rel="noopener">https://www.zhihu.com/question/48050245?sort=created</a></li>
+<li>更具体地介绍GGX，没太多亮点： <a href="https://zhuanlan.zhihu.com/p/25539396" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/25539396</a></li>
+<li>讲解了一些光照公式的推导过程： <a href="https://zhuanlan.zhihu.com/p/21489591?refer=c_37032701" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/21489591?refer=c_37032701</a></li>
+<li>Disney的文档中，有各项异性的GGX的实现方式</li>
+<li>光学显示的原理，非常精辟：<a href="http://www.opengpu.org/forum.php?mod=viewthread&amp;tid=16963" target="_blank" rel="noopener">http://www.opengpu.org/forum.php?mod=viewthread&amp;tid=16963</a></li>
+<li><p>一个自己实现的PBR过程：<a href="https://www.cnblogs.com/cg4213/p/5946077.html" target="_blank" rel="noopener">https://www.cnblogs.com/cg4213/p/5946077.html</a></p>
+</li>
+<li><p>神一样的文档： s2012_pbs_disney_brdf_notes_v3.pdf  ： Physically Based Shading at Disney<br>2013SiggraphPresentationsNotes-26915738.pdf :  Real Shading in Unreal Engine 4</p>
+</li>
+</ol>
+
+      
+
+      
+        <div class="page-reward">
+          <a href="javascript:;" class="page-reward-btn tooltip-top">
+            <div class="tooltip tooltip-east">
+            <span class="tooltip-item">
+              赏
+            </span>
+            <span class="tooltip-content">
+              <span class="tooltip-text">
+                <span class="tooltip-inner">
+                  <p class="reward-p"><i class="icon icon-quo-left"></i>谢谢你请我吃糖果<i class="icon icon-quo-right"></i></p>
+                  <div class="reward-box">
+                    
+                    
+                  </div>
+                </span>
+              </span>
+            </span>
+          </div>
+          </a>
+        </div>
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
@@ -196,19 +318,110 @@
 		</ul>
 	</div>
 
-          
+      
 
+      
+
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
         </div>
-        <div class="clearfix"></div>
-    </header>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//pan.baidu.com/share/qrcode?url=https://winddarklj.github.io/2019/08/03/render-light-tp-brdf/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
+  
+<nav id="article-nav">
+  
+    <a href="/lynxhunch.github.io/2019/08/03/spine-post_effect/" id="article-nav-newer" class="article-nav-link-wrap">
+      <i class="icon-circle-left"></i>
+      <div class="article-nav-title">
+        
+          Spine骨骼动画的后处理效果
+        
+      </div>
+    </a>
   
   
-    </div></section>
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+  
+  
   
 
-    
+  
+
+  
+
+  
 
 
           </div>
@@ -231,9 +444,9 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
+		isPost: true,
 		isArchive: false,
-		isTag: true,
+		isTag: false,
 		isCategory: false,
 		open_in_new: false,
 		toc_hide_index: true,
