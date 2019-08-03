@@ -178,19 +178,10 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p><br><br><br></p>
-<h2 id="闲白"><a href="#闲白" class="headerlink" title="闲白"></a>闲白</h2><p>谈到2D游戏，就离不开骨骼动画。加入了mesh变换的骨骼动画表现效果也异常强大，一些3D游戏中也会用骨骼动画做Live2D效果。<br>那么在使用过程中，某些开发者会遇到一个问题，骨骼动画如何做一些后处理渲染表现?</p>
-<h2 id="基础效果-透明化"><a href="#基础效果-透明化" class="headerlink" title="基础效果: 透明化"></a>基础效果: 透明化</h2><p>我们先从最基础的透明化入手，先来看下最原始的SpineShader中的vert和frag:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">VertexOutput <span class="title">vert</span> <span class="params">(VertexInput v)</span> </span>&#123;</span><br><span class="line">	VertexOutput o;</span><br><span class="line">	o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">	o.uv = v.uv;</span><br><span class="line">	o.vertexColor = v.vertexColor;</span><br><span class="line">	<span class="keyword">return</span> o;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">float4 frag (VertexOutput i) : COLOR &#123;</span><br><span class="line">	float4 texColor = tex2D(_MainTex, i.uv);</span><br><span class="line"></span><br><span class="line">	<span class="meta">#<span class="meta-keyword">if</span> defined(_STRAIGHT_ALPHA_INPUT)</span></span><br><span class="line">	texColor.rgb *= texColor.a;</span><br><span class="line">	<span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> (texColor * i.vertexColor);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>可以看到其实并没有什么可说的，和普通图片的渲染类似。下面修改几个地方，让其能通过我们传入的透明度值来表现：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Blend SrcAlpha OneMinusSrcAlpha	 <span class="comment">//修改blend模式</span></span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">texColor.a = texColor.a * i.vertexColor * (<span class="number">1</span> - _Transparency);	<span class="comment">//增加一个透明度值，1为透明, 0为不透明</span></span><br></pre></td></tr></table></figure></p>
-<p>先看一下效果, 原本的spine动画是这样的:<br><img src="/lynxhunch.github.io/img/Spine_Post_Effect/origin.png" alt="Shadow-Masking"></p>
-<p>调整透明度后，发现生效了：<br><img src="/lynxhunch.github.io/img/Spine_Post_Effect/transparent_wrong.png" alt="Shadow-Masking"></p>
-<p>但是看着效果是不对的，因为原本spine动画是由多个submesh组成的动画，本身存在着叠加关系，当你其做透明操作时，原本叠加的部分的透明度与非叠加部分不同，相当于穿帮了。</p>
-<p>这里肯定有朋友要说了，Spine本身提供透明化代码啊，在C#中进行整体透明度调整：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Spine.Skeleton skeleton = GetComponent&lt;SkeletonAnimation&gt;().skeleton;</span><br><span class="line">skeleton.a = <span class="number">0.5f</span>;</span><br></pre></td></tr></table></figure></p>
-<p>Yes!但是本文旨在从透明化引出如何对Spine进行后处理的一系列内容。所以我们还是要想办法用shader做透明化。</p>
-<p>那么，到底有什么好的解决方法呢？答案就是…..RenderTexture。是不是很失望，内心炸裂？事实上确实如此，像描边、透明化这类效果，骨骼动画想要做都是十分十分困难的。</p>
-<p>网上有一个插件叫做EntityPostProcessor2D, 专门针对一些骨骼动画，或者多Spirte动画做后处理的。最后通过插件实现的效果如下：<br><img src="/lynxhunch.github.io/img/Spine_Post_Effect/RT.png" alt="Shadow-Masking"><br>甚至可以做一些Dissolve之类的效果，以至于所有相关效果：<br><img src="/lynxhunch.github.io/img/Spine_Post_Effect/DISSOLVE.png" alt="Shadow-Masking"></p>
-<p>github地址如下：<a href="https://github.com/aflesher/EntityPostProcessor2D" target="_blank" rel="noopener">https://github.com/aflesher/EntityPostProcessor2D</a></p>
-<p>最后要注意的一个问题，RenderTexture相当于多架一台摄像机 + 多次像素级别的IO操作, 可以说都是重型操作, 需要慎用</p>
-
+<h2 id="闲白"><a href="#闲白" class="headerlink" title="闲白"></a>闲白</h2><p>谈到2D游戏，就离不开骨骼动画。加入了mesh变换的骨骼动画表现效果也异常强大，一些3D游戏中也会用骨骼动画做Live2D效果。<br>那么在使用过程中，某些开发者会遇到一个问题，骨骼动画如何做一些后处理渲染表现?<br>
+        
+          <a class="article-more-a" href="/lynxhunch.github.io/2019/08/03/spine-post_effect/#more">more >></a>
+        
       
 
       
@@ -269,11 +260,7 @@
       
         <p><br><br><br></p>
 <h2 id="BRDF的解释"><a href="#BRDF的解释" class="headerlink" title="BRDF的解释"></a>BRDF的解释</h2><ul>
-<li>BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：</li>
-</ul>
-<div align="center"><br>    <img src="/lynxhunch.github.io/img/cc25239f2cbd0188e36ccb68b40e9bf1_b.jpg" alt="Reflect Model"><br></div>
-
-<p>其中 <strong>l</strong>是光线的入射向量，<strong>n</strong>为表面法向量， <strong>r</strong> 为反射向量，<strong>t</strong>为折射向量。 这是以前初中物理学过的光照模型。<br>
+<li>BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：
         
           <a class="article-more-a" href="/lynxhunch.github.io/2019/08/03/render-light-tp-brdf/#more">more >></a>
         
@@ -422,15 +409,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">lighting</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">spine</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">animation</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">lighting</a>
               </li>
             
             <div class="clearfix"></div>

@@ -8,13 +8,13 @@
   <link rel="dns-prefetch" href="https://winddarklj.github.io">
   <title>BRDF光照原理以及各项异性效果 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="BRDF的解释 BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：        其中 l是光线的入射向量，n为表面法向量， r 为反射向量，t为折射向量">
+  <meta name="description" content="BRDF的解释 BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：">
 <meta name="keywords" content="lighting">
 <meta property="og:type" content="article">
 <meta property="og:title" content="BRDF光照原理以及各项异性效果">
 <meta property="og:url" content="https://winddarklj.github.io/2019/08/03/render-light-tp-brdf/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="BRDF的解释 BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：        其中 l是光线的入射向量，n为表面法向量， r 为反射向量，t为折射向量。 这是以前初中物理学过的光照模型。">
+<meta property="og:description" content="BRDF的解释 BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：">
 <meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/cc25239f2cbd0188e36ccb68b40e9bf1_b.jpg">
 <meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/2235455dpp8pnhq54tiapt.png">
 <meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/223512f32uylyfeau0jyi4.jpg">
@@ -35,10 +35,10 @@
 <meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/600px-Shadowing_masking_term.jpg">
 <meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/20171220153706.png">
 <meta property="og:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/20171220221426.png">
-<meta property="og:updated_time" content="2019-08-03T07:33:05.797Z">
+<meta property="og:updated_time" content="2019-08-03T18:09:39.945Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="BRDF光照原理以及各项异性效果">
-<meta name="twitter:description" content="BRDF的解释 BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：        其中 l是光线的入射向量，n为表面法向量， r 为反射向量，t为折射向量。 这是以前初中物理学过的光照模型。">
+<meta name="twitter:description" content="BRDF的解释 BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：">
 <meta name="twitter:image" content="https://winddarklj.github.io/lynxhunch.github.io/img/cc25239f2cbd0188e36ccb68b40e9bf1_b.jpg">
   
     <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
@@ -203,11 +203,13 @@
       
         <p><br><br><br></p>
 <h2 id="BRDF的解释"><a href="#BRDF的解释" class="headerlink" title="BRDF的解释"></a>BRDF的解释</h2><ul>
-<li>BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：</li>
+<li>BRDF是(Bidirectional Reflectance Distribution Function)的缩写，中文意思是双向反射分布函数。我们知道，当光线照射在物体表面上，会发生反射、折射（透射）现象，如下图：<a id="more"></a>
+</li>
 </ul>
 <div align="center"><br>    <img src="/lynxhunch.github.io/img/cc25239f2cbd0188e36ccb68b40e9bf1_b.jpg" alt="Reflect Model"><br></div>
 
-<p>其中 <strong>l</strong>是光线的入射向量，<strong>n</strong>为表面法向量， <strong>r</strong> 为反射向量，<strong>t</strong>为折射向量。 这是以前初中物理学过的光照模型。<br><a id="more"></a><br>了解了这个光照模型，问题来了：<br><strong>Q1</strong>: 折射与反射的强度显然由物体表面材质决定，那么材质究竟是如何影响反射、折射强度的？</p>
+<p>其中 <strong>l</strong>是光线的入射向量，<strong>n</strong>为表面法向量， <strong>r</strong> 为反射向量，<strong>t</strong>为折射向量。 这是以前初中物理学过的光照模型。</p>
+<p>了解了这个光照模型，问题来了：<br><strong>Q1</strong>: 折射与反射的强度显然由物体表面材质决定，那么材质究竟是如何影响反射、折射强度的？</p>
 <p><strong>A1</strong>：物体与光的交互可以这样粗暴的分类和定义：<br><strong>光与物质的交互</strong>： 光的穿透率，决定物质的透明情况</p>
 <p>光是是一种横向传播的电磁波，电磁波的波长范围非常广，但只有390~760nm之间的一段波谱是人眼可见到的，也就是在图形学里对渲染着色起作用的部分。另外因为光有波粒二象性的缘故，有时候我们在图形学里也会把光做为光子（photon）来处理。<br>    <img src="/lynxhunch.github.io/img/2235455dpp8pnhq54tiapt.png" alt="Spectrum"></p>
 <p>当光投射到传感器（眼睛，照相机等）上时，颜色和亮度就会被吸收并感知，而光与物质交互后被感知的，就是物体的颜色。</p>
@@ -514,15 +516,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">lighting</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">spine</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">animation</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">lighting</a>
               </li>
             
             <div class="clearfix"></div>
